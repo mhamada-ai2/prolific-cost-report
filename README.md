@@ -17,7 +17,7 @@ A Python script that generates detailed cost reports for Prolific projects. It f
 
 ## Features
 
-* Fetches all completed studies in a Prolific project
+* Fetches all completed studies for a given Prolific project
 * Calculates:
   * Estimated vs actual participant time
   * Intended and average reward per hour
@@ -52,7 +52,11 @@ A Python script that generates detailed cost reports for Prolific projects. It f
 
 ## Configuration
 
-1. **Set your Prolific API token** as an environment variable:
+1. **Generate an API token** on Prolific.
+  * Log in to Prolific at [https://www.prolific.com/](https://www.prolific.com/).
+  * Navigate to **API Tokens** in the sidebar.
+  * Click **Create API token**, give it a name, and copy the token value.
+2. **Set your Prolific API token** as an environment variable:
 
    ```bash
    export PROLIFIC_API_TOKEN="your_token_here"    # macOS/Linux
@@ -70,10 +74,10 @@ A Python script that generates detailed cost reports for Prolific projects. It f
 4. Copy the `<PROJECT_ID>` portion of that URL for use below.
 
 ```bash
-python prolific_project_cost.py <project_id> [-o output.csv]
+python prolific_project_cost.py project_id [-o output.csv]
 ```
 
-* `<project_id>`: your Prolific project identifier (required if not prompted).
+* `project_id`: your Prolific project identifier (required if not prompted).
 * `-o`, `--output`: optional path for the CSV. If omitted, defaults to `./cost_reports/{Project Name} - Cost Report - YYYY-MM-DD.csv`
 
 ### Examples
@@ -108,6 +112,6 @@ The script writes a CSV with columns:
 | total\_study\_rewards       | Sum of all reward payouts (including bonuses) in USD.             |
 | total\_study\_cost          | Total cost including rewards, fees, and taxes in USD.             |
 
-Each row corresponds to one study in the specified Prolific project.
+Each row will correspond to one study in the specified Prolific project.
 
 
