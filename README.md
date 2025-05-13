@@ -12,9 +12,6 @@ A Python script that generates detailed cost reports for Prolific projects. It f
 4. [Configuration](#configuration)
 5. [Usage](#usage)
 6. [Output](#output)
-7. [Logging](#logging)
-8. [Contributing](#contributing)
-9. [License](#license)
 
 ---
 
@@ -40,7 +37,7 @@ A Python script that generates detailed cost reports for Prolific projects. It f
    git clone https://github.com/mhamada-ai2/prolific-cost-report.git
    cd prolific-cost-report
    ```
-2. **(Optional) Create & activate a virtual environment**
+2. **Create & activate a virtual environment**
 
    ```bash
    python3 -m venv venv
@@ -50,7 +47,7 @@ A Python script that generates detailed cost reports for Prolific projects. It f
 3. **Install dependencies**
 
    ```bash
-   pip install -r requirements.txt
+   pip install requests
    ```
 
 ## Configuration
@@ -60,7 +57,7 @@ A Python script that generates detailed cost reports for Prolific projects. It f
    ```bash
    export PROLIFIC_API_TOKEN="your_token_here"    # macOS/Linux
    set PROLIFIC_API_TOKEN=your_token_here         # Windows cmd.exe
-   $env:PROLIFIC_API_TOKEN="your_token_here"     # Windows PowerShell
+   $env:PROLIFIC_API_TOKEN="your_token_here"      # Windows PowerShell
    ```
 
 ## Usage
