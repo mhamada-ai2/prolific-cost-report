@@ -19,7 +19,7 @@ A Python script that generates detailed cost reports for Prolific projects. It f
 
 * Fetches all completed studies for a given Prolific project
 * Calculates:
-  * Estimated vs actual participant time
+  * Estimated and average participant time
   * Intended and average reward per hour
   * Total study hours, rewards, and cost
 * Outputs results in a CSV via a customizable filename
@@ -53,9 +53,9 @@ A Python script that generates detailed cost reports for Prolific projects. It f
 ## Configuration
 
 1. **Generate an API token** on Prolific.
-  * Log in to Prolific at [https://www.prolific.com/](https://www.prolific.com/).
-  * Navigate to **API Tokens** in the sidebar.
-  * Click **Create API token**, give it a name, and copy the token value.
+   * Log in to Prolific at [https://www.prolific.com/](https://www.prolific.com/).
+   * Navigate to **API Tokens** in the sidebar.
+   * Click **Create API token**, give the token a name, and copy the value.
 2. **Set your Prolific API token** as an environment variable:
 
    ```bash
@@ -66,26 +66,34 @@ A Python script that generates detailed cost reports for Prolific projects. It f
 
 ## Usage
 
-**Finding your Project ID:**
+1. **Find your Project ID** on Prolific.
 
-1. Log in to Prolific at [https://www.prolific.com/](https://www.prolific.com/).
-2. Navigate to **Projects** in the sidebar and open the desired project.
-3. In your browser’s address bar, the URL will look like `https://app.prolific.com/researcher/workspaces/projects/<PROJECT_ID>`.
-4. Copy the `<PROJECT_ID>` portion of that URL for use below.
+   * Log in to Prolific at [https://www.prolific.com/](https://www.prolific.com/).
+   * Navigate to **Projects** in the sidebar and open the desired project.
+   * In your browser’s address bar, the URL will look like `https://app.prolific.com/researcher/workspaces/projects/<PROJECT_ID>`.
+   * Copy the `<PROJECT_ID>` portion of that URL for use below.
 
-```bash
-python prolific_project_cost.py project_id [-o output.csv]
-```
+2. In the **Command Line**:
 
-* `project_id`: your Prolific project identifier (required if not prompted).
-* `-o`, `--output`: optional path for the CSV. If omitted, defaults to `./cost_reports/{Project Name} - Cost Report - YYYY-MM-DD.csv`
+    ```bash
+    python prolific_project_cost.py <project_id> [-o output.csv]
+    ```
+
+    * `project_id`: your Prolific project identifier (required if not prompted). Substitute with `<PROJECT_ID>`.
+    * `-o`, `--output`: optional path for the CSV. If omitted, defaults to `./cost_reports/{Project Name} - Cost Report - YYYY-MM-DD.csv`
+    * **Note**: You may need to replace `python` with `python3`.
 
 ### Examples
 
-* **Prompt for project ID** and default filename:
+* **Prompt for project ID** using default filename:
 
   ```bash
   python prolific_project_cost.py
+  ```
+* **Specify project ID** using default filename:
+
+  ```bash
+  python prolific_project_cost.py <PROJECT_ID>
   ```
 * **Specify project ID & output path**:
 
@@ -113,5 +121,3 @@ The script writes a CSV with columns:
 | total\_study\_cost          | Total cost including rewards, fees, and taxes in USD.             |
 
 Each row will correspond to one study in the specified Prolific project.
-
-
