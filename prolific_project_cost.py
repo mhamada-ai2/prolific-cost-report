@@ -1,9 +1,16 @@
+#!/usr/bin/env python3
 import os
 import sys
 import csv
 import requests
+import argparse
+import logging
 from pathlib import Path
 import datetime
+
+# Configure logging
+logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
+logger = logging.getLogger(__name__)
 
 # Base URL for Prolific public API
 API_URL = "https://api.prolific.com/api/v1"
@@ -11,50 +18,49 @@ API_URL = "https://api.prolific.com/api/v1"
 # Get Prolific API token from the environment
 API_TOKEN = os.getenv("PROLIFIC_API_TOKEN")
 if not API_TOKEN:
-    raise RuntimeError("Please set the PROLIFIC_API_TOKEN environment variable")
+    logger.error("Please set the PROLIFIC_API_TOKEN environment variable")
+    sys.exit(1)
 
-HEADERS = {
+# Prepare a persistent HTTP session
+session = requests.Session()
+session.headers.update({
     "Authorization": f"Token {API_TOKEN}",
     "Content-Type": "application/json"
-}
+})
 
 
-def fetch_studies(project_id):
+def fetch_studies(project_id: str) -> list:
     """
-    Fetch all completed (non‑draft) studies in the given project.
-    Uses the 'status=COMPLETED' and 'project_id' query params.
+    Fetch all completed studies in the given project.
     """
     studies = []
-    params = {
-        "project_id": project_id,
-        "status": "COMPLETED",
-        "page_size": 100
-    }
+    params = {"status": "COMPLETED", "page_size": 100}
     url = f"{API_URL}/projects/{project_id}/studies"
     while url:
-        resp = requests.get(url, headers=HEADERS, params=params)
+        logger.debug(f"GET {url} params={params}")
+        resp = session.get(url, params=params)
         resp.raise_for_status()
         payload = resp.json()
-        studies.extend(payload["results"])
+        studies.extend(payload.get("results", []))
         url = payload.get("links", {}).get("next")
         params = {}
     return studies
 
 
-def fetch_study_details(study_id):
+def fetch_study_details(study_id: str) -> dict:
     """
-    Fetch the full study object given study_id for additional details.
+    Fetch the full study object given its ID.
     """
-    resp = requests.get(f"{API_URL}/studies/{study_id}", headers=HEADERS)
+    resp = session.get(f"{API_URL}/studies/{study_id}")
     resp.raise_for_status()
     return resp.json()
 
 
-def get_total_rewards(study_id):
+def get_total_rewards(study_id: str) -> float:
     """
-    Fetch the full study cost object and calculate total rewards, including bonuses.
+    Fetch cost breakdown and return sum of rewards and bonuses.
     """
-    resp = requests.get(f"{API_URL}/studies/{study_id}/cost", headers=HEADERS)
+    resp = session.get(f"{API_URL}/studies/{study_id}/cost")
     resp.raise_for_status()
     cost_data = resp.json()
     rewards = cost_data["rewards"]["rewards"]["amount"]
@@ -62,38 +68,45 @@ def get_total_rewards(study_id):
     return rewards + bonuses
 
 
-def fetch_project_name(project_id):
+def fetch_project_name(project_id: str) -> str:
     """
-    Fetch the full project object and return its name (title).
+    Fetch the project object and return its title.
     """
-    resp = requests.get(f"{API_URL}/projects/{project_id}", headers=HEADERS)
+    resp = session.get(f"{API_URL}/projects/{project_id}")
     resp.raise_for_status()
     return resp.json().get("title", project_id)
 
 
-def main(project_id=None, output_csv=None):
+def parse_args():
+    parser = argparse.ArgumentParser(description="Generate Prolific cost reports")
+    parser.add_argument("project_id", nargs="?", help="Prolific project ID")
+    parser.add_argument("-o", "--output", help="Path to output CSV file")
+    return parser.parse_args()
+
+
+def main(project_id: str = None, output_csv: Path = None):
     if not project_id:
         project_id = input("Enter the project's Prolific ID: ")
-    try: 
+    try:
         project_name = fetch_project_name(project_id)
-    except:
-        print("[ERROR] Unable to retrive project with given ID.")
-        return
-        
+    except requests.HTTPError as e:
+        logger.error(f"Unable to retrieve project {project_id}: {e}")
+        sys.exit(1)
+
     if not output_csv:
-        safe_name = "".join(c for c in project_name
-                            if c.isalnum() or c in (" ", "-", "_")).rstrip()
+        safe_name = "".join(c for c in project_name if c.isalnum() or c in (" ", "-", "_"))
+        safe_name = safe_name.rstrip()
         reports_dir = Path(__file__).parent / "cost_reports"
         reports_dir.mkdir(exist_ok=True)
         date_str = datetime.date.today().isoformat()
         output_csv = reports_dir / f"{safe_name} - Cost Report - {date_str}.csv"
-    output_csv = str(output_csv)
+    output_csv = Path(output_csv)
 
-    print(f"Fetching studies for {project_name} ({project_id})...")
+    logger.info(f"Fetching studies for {project_name}...")
     studies = fetch_studies(project_id)
-    with open(output_csv, "w", newline="", encoding="utf-8") as f:
-        writer = csv.writer(f)
-        writer.writerow([
+
+    with output_csv.open("w", newline="", encoding="utf-8") as f:
+        fieldnames = [
             "study_name",
             "internal_name",
             "study_id",
@@ -105,48 +118,49 @@ def main(project_id=None, output_csv=None):
             "average_reward_per_hour",
             "total_study_hours",
             "total_study_rewards",
-            "total_study_cost"
-        ])
+            "total_study_cost",
+        ]
+        writer = csv.DictWriter(f, fieldnames=fieldnames)
+        writer.writeheader()
 
         for s in studies:
-            try: 
-                details = fetch_study_details(s["id"])
-            except:
-                print(f"[ERROR] Unable to retrieve study details: {s["internal_name"]} ({s["id"]})")
-            else:
-                reward_usd         = details["reward"] / 100
-                total_places       = s["total_available_places"]
-                est_hours          = details["estimated_completion_time"] / 60
-                median_hours       = details["average_time_taken_seconds"] / 60 / 60
-                intended_rph       = (reward_usd / est_hours) if est_hours else 0
-                average_rph        = details["average_reward_per_hour"] / 100
-                total_study_hours  = est_hours * total_places
-                total_rewards      = get_total_rewards(s["id"]) / 100
-                total_cost         = s["total_cost"] / 100
+            study_id = s["id"]
+            try:
+                details = fetch_study_details(study_id)
+            except requests.HTTPError as e:
+                logger.error(f"Unable to retrieve study {study_id}: {e}")
+                continue
 
-                writer.writerow([
-                    s["name"],
-                    s["internal_name"],
-                    s["id"],
-                    s["published_at"].split("T")[0],
-                    total_places,
-                    round(est_hours, 5),
-                    round(median_hours, 5),
-                    round(intended_rph, 2),
-                    round(average_rph, 2),
-                    round(total_study_hours, 5),
-                    round(total_rewards, 2),
-                    round(total_cost, 2)
-                ])
-                print(f"[DONE] {s["internal_name"]} ({s["id"]})")
-    
-    print(f"Wrote cost report to {output_csv}")
+            reward_usd = details["reward"] / 100
+            total_places = s.get("total_available_places", 0)
+            est_hours = details.get("estimated_completion_time", 0) / 60
+            median_hours = details.get("average_time_taken_seconds", 0) / 3600
+            intended_rph = (reward_usd / est_hours) if est_hours else 0
+            average_rph = details.get("average_reward_per_hour", 0) / 100
+            total_study_hours = est_hours * total_places
+            total_rewards = get_total_rewards(study_id) / 100
+            total_cost = s.get("total_cost", 0) / 100
+
+            row = {
+                "study_name": s.get("name", ""),
+                "internal_name": s.get("internal_name", ""),
+                "study_id": study_id,
+                "published_at": s.get("published_at", "").split("T")[0],
+                "total_available_places": total_places,
+                "estimated_completion_time": round(est_hours, 5),
+                "average_completion_time": round(median_hours, 5),
+                "intended_reward_per_hour": round(intended_rph, 2),
+                "average_reward_per_hour": round(average_rph, 2),
+                "total_study_hours": round(total_study_hours, 5),
+                "total_study_rewards": round(total_rewards, 2),
+                "total_study_cost": round(total_cost, 2),
+            }
+            writer.writerow(row)
+            logger.info(f"[DONE] {s.get('internal_name', '')} ({study_id})")
+
+    logger.info(f"Wrote cost report to {output_csv}")
 
 
 if __name__ == "__main__":
-    if len(sys.argv) > 3:
-        print("Usage: python prolific_project_cost.py [project_id] [output_csv]")
-        sys.exit(1)
-    proj_id = sys.argv[1] if len(sys.argv) >= 2 else None
-    out_csv = sys.argv[2] if len(sys.argv) >= 3 else None
-    main(proj_id, out_csv)
+    args = parse_args()
+    main(args.project_id, args.output)
