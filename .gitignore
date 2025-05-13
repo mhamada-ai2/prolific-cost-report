@@ -1,3 +1,10 @@
+# Byte‑compiled / cache
 __pycache__/
 *.pyc
+
+# Environment files
 .env
+.venv/
+
+# Generated reports
+cost_reports/
