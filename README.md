@@ -62,11 +62,18 @@ A Python script that generates detailed cost reports for Prolific projects. It f
 
 ## Usage
 
+**Finding your Project ID:**
+
+1. Log in to Prolific at [https://www.prolific.com/](https://www.prolific.com/).
+2. Navigate to **Projects** in the sidebar and open the desired project.
+3. In your browser’s address bar, the URL will look like `https://app.prolific.com/researcher/workspaces/projects/<PROJECT_ID>`.
+4. Copy the `<PROJECT_ID>` portion of that URL for use below.
+
 ```bash
 python prolific_project_cost.py <project_id> [-o output.csv]
 ```
 
-* `<project_id>`: your Prolific project identifier (required if not prompted)
+* `<project_id>`: your Prolific project identifier (required if not prompted).
 * `-o`, `--output`: optional path for the CSV. If omitted, defaults to `./cost_reports/{Project Name} - Cost Report - YYYY-MM-DD.csv`
 
 ### Examples
@@ -79,14 +86,28 @@ python prolific_project_cost.py <project_id> [-o output.csv]
 * **Specify project ID & output path**:
 
   ```bash
-  python prolific_project_cost.py 67f4171a84db67b4ae80447e -o reports/my_report.csv
+  python prolific_project_cost.py <PROJECT_ID> -o reports/my_report.csv
   ```
 
 ## Output
 
 The script writes a CSV with columns:
 
-| study\_name | internal\_name | study\_id | published\_at | total\_available\_places | estimated\_completion\_time | average\_completion\_time | intended\_reward\_per\_hour | average\_reward\_per\_hour | total\_study\_hours | total\_study\_rewards | total\_study\_cost |
-| ----------- | -------------- | --------- | ------------- | ------------------------ | --------------------------- | ------------------------- | --------------------------- | -------------------------- | ------------------- | --------------------- | ------------------ |
+| Column Name                 | Description                                                       |
+| --------------------------- | ----------------------------------------------------------------- |
+| study\_name                 | The public-facing title of the study.                             |
+| internal\_name              | The internal Prolific identifier/name for the study.              |
+| study\_id                   | The unique Prolific study identifier (see study link).            |
+| published\_at               | Date the study was published (YYYY-MM-DD).                        |
+| total\_available\_places    | Number of participant slots allocated to the study.               |
+| estimated\_completion\_time | Estimated time per participant in hours.                          |
+| average\_completion\_time   | Median actual time participants took, in hours.                   |
+| intended\_reward\_per\_hour | Reward rate (USD/hour) based on the estimated completion time.    |
+| average\_reward\_per\_hour  | Mean actual reward rate (USD/hour) paid to participants.          |
+| total\_study\_hours         | Total estimated hours across all slots (estimated\_time × slots). |
+| total\_study\_rewards       | Sum of all reward payouts (including bonuses) in USD.             |
+| total\_study\_cost          | Total cost including rewards, fees, and taxes in USD.             |
 
 Each row corresponds to one study in the specified Prolific project.
+
+
