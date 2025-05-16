@@ -6,7 +6,8 @@ import requests
 import argparse
 import logging
 from pathlib import Path
-import datetime
+from datetime import datetime
+import pytz
 
 # Configure logging
 logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
@@ -98,7 +99,7 @@ def main(project_id: str = None, output_csv: Path = None):
         safe_name = safe_name.rstrip()
         reports_dir = Path(__file__).parent / "cost_reports"
         reports_dir.mkdir(exist_ok=True)
-        date_str = datetime.date.today().isoformat()
+        date_str = datetime.today().isoformat()
         output_csv = reports_dir / f"{safe_name} - Cost Report - {date_str}.csv"
     output_csv = Path(output_csv)
 
@@ -131,6 +132,9 @@ def main(project_id: str = None, output_csv: Path = None):
                 logger.error(f"Unable to retrieve study {study_id}: {e}")
                 continue
 
+            pacific_tz = pytz.timezone('US/Pacific')
+            utc_date = datetime.fromisoformat(s.get("published_at", ""))
+            pst_date = utc_date.astimezone(pacific_tz)
             reward_usd = details["reward"] / 100
             total_places = s.get("total_available_places", 0)
             est_hours = details.get("estimated_completion_time", 0) / 60
@@ -145,7 +149,7 @@ def main(project_id: str = None, output_csv: Path = None):
                 "study_name": s.get("name", ""),
                 "internal_name": s.get("internal_name", ""),
                 "study_id": study_id,
-                "published_at": s.get("published_at", "").split("T")[0],
+                "published_at": pst_date,
                 "total_available_places": total_places,
                 "estimated_completion_time": round(est_hours, 5),
                 "average_completion_time": round(median_hours, 5),

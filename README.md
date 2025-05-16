@@ -110,7 +110,7 @@ The script writes a CSV with columns:
 | study\_name                 | The public-facing title of the study.                             |
 | internal\_name              | The internal Prolific identifier/name for the study.              |
 | study\_id                   | The unique Prolific study identifier (see study link).            |
-| published\_at               | Date the study was published (YYYY-MM-DD).                        |
+| published\_at               | Date the study was published (Pacific YYYY-MM-DD).                |
 | total\_available\_places    | Number of participant slots allocated to the study.               |
 | estimated\_completion\_time | Estimated time per participant in hours.                          |
 | average\_completion\_time   | Median actual time participants took in hours.                    |
