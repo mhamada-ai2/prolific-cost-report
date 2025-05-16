@@ -32,19 +32,32 @@ session.headers.update({
 
 def fetch_studies(project_id: str) -> list:
     """
-    Fetch all completed studies in the given project.
+    Fetch all completed studies in the given project,
+    following every page until there are no more.
     """
     studies = []
     params = {"status": "COMPLETED", "page_size": 100}
     url = f"{API_URL}/projects/{project_id}/studies"
+
     while url:
         logger.debug(f"GET {url} params={params}")
         resp = session.get(url, params=params)
         resp.raise_for_status()
         payload = resp.json()
+
+        # collect this page’s studies
         studies.extend(payload.get("results", []))
-        url = payload.get("links", {}).get("next")
-        params = {}
+
+        # advance to the next page (if any)
+        next_link = (
+            payload
+            .get("_links", {})
+            .get("next", {})
+            .get("href")
+        )
+        url = next_link
+        params = {}  # no need to resend filters once the 'next' URL is absolute
+
     return studies
 
 
