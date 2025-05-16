@@ -99,7 +99,7 @@ def main(project_id: str = None, output_csv: Path = None):
         safe_name = safe_name.rstrip()
         reports_dir = Path(__file__).parent / "cost_reports"
         reports_dir.mkdir(exist_ok=True)
-        date_str = datetime.today().isoformat()
+        date_str = datetime.today().strftime("%Y-%m-%d %H-%M")
         output_csv = reports_dir / f"{safe_name} - Cost Report - {date_str}.csv"
     output_csv = Path(output_csv)
 

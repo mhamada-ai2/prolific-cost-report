@@ -81,7 +81,7 @@ A Python script that generates detailed cost reports for Prolific projects. It f
     ```
 
     * `<project_id>`: your Prolific project identifier (required if not prompted). Substitute with `PROJECT_ID`.
-    * `-o`, `--output`: optional path for the CSV. If omitted, defaults to `./cost_reports/{Project Name} - Cost Report - YYYY-MM-DD.csv`
+    * `-o`, `--output`: optional path for the CSV. If omitted, defaults to `./cost_reports/{Project Name} - Cost Report - YYYY-MM-DD HH-mm.csv`
 
 ### Examples
 
