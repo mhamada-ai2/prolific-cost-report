@@ -49,6 +49,7 @@ A Python script that generates detailed cost reports for Prolific projects. It f
 
    ```bash
    pip install requests
+   pip install pytz
    ```
 
 ## Configuration
