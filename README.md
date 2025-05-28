@@ -78,7 +78,7 @@ A Python script that generates detailed cost reports for Prolific projects. It f
 2. In the **Command Line**:
 
     ```bash
-    python3 prolific_project_cost.py <project_id> [-o output.csv]
+    python3 prolific_cost_report.py <project_id> [-o output.csv]
     ```
 
     * `<project_id>`: your Prolific project identifier (required if not prompted). Substitute with `PROJECT_ID`.
@@ -89,17 +89,17 @@ A Python script that generates detailed cost reports for Prolific projects. It f
 * **Prompt for project ID** using default filename:
 
   ```bash
-  python3 prolific_project_cost.py
+  python3 prolific_cost_report.py
   ```
 * **Specify project ID** using default filename:
 
   ```bash
-  python3 prolific_project_cost.py PROJECT_ID
+  python3 prolific_cost_report.py PROJECT_ID
   ```
 * **Specify project ID & output path**:
 
   ```bash
-  python3 prolific_project_cost.py PROJECT_ID -o reports/my_report.csv
+  python3 prolific_cost_report.py PROJECT_ID -o reports/my_report.csv
   ```
 
 ## Output
