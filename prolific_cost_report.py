@@ -32,11 +32,11 @@ session.headers.update({
 
 def fetch_studies(project_id: str) -> list:
     """
-    Fetch all completed studies in the given project,
+    Fetch all completed or active studies in the given project,
     following every page until there are no more.
     """
     studies = []
-    params = {"status": "COMPLETED", "page_size": 100}
+    params = {"state": ["COMPLETED", "ACTIVE", "PAUSED", "AWAITING REVIEW"], "page_size": 100}
     url = f"{API_URL}/projects/{project_id}/studies"
 
     while url:
@@ -137,6 +137,7 @@ def main(project_id: str = None, output_csv: Path = None):
         writer = csv.DictWriter(f, fieldnames=fieldnames)
         writer.writeheader()
 
+        count = 0
         for s in studies:
             study_id = s["id"]
             try:
@@ -172,10 +173,11 @@ def main(project_id: str = None, output_csv: Path = None):
                 "total_study_rewards": round(total_rewards, 2),
                 "total_study_cost": round(total_cost, 2),
             }
+            count += 1
             writer.writerow(row)
             logger.info(f"[DONE] {s.get('internal_name', '')} ({study_id})")
 
-    logger.info(f"Wrote cost report to {output_csv}")
+    logger.info(f"Wrote rows for {count} of {len(studies)} studies to {output_csv}")
 
 
 if __name__ == "__main__":
