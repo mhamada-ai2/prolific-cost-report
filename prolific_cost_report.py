@@ -177,7 +177,7 @@ def main(project_id: str = None, output_csv: Path = None):
             writer.writerow(row)
             logger.info(f"[DONE] {s.get('internal_name', '')} ({study_id})")
 
-    logger.info(f"Wrote rows for {count} of {len(studies)} studies to {output_csv}")
+    logger.info(f"Wrote rows for {count}/{len(studies)} studies to {output_csv}")
 
 
 if __name__ == "__main__":
